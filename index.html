@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SEA Ventures — Campaign Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#f5a623;--gold-glow:rgba(245,166,35,0.6);--gold-dim:rgba(245,166,35,0.15);
+  --silver:#c8d8e8;--silver-glow:rgba(200,216,232,0.5);--silver-dim:rgba(200,216,232,0.1);
+  --purple:#a855f7;--purple-glow:rgba(168,85,247,0.55);--purple-dim:rgba(168,85,247,0.12);
+  --bg:#0a0a0f;
+  --card-bg:rgba(255,255,255,0.04);
+  --border-subtle:rgba(255,255,255,0.08);
+  --text:#ffffff;--text-dim:rgba(255,255,255,0.45);--text-mid:rgba(255,255,255,0.7);
+  --orange:#f97316;--orange-glow:rgba(249,115,22,0.4);
+  --green:#22c55e;--green-glow:rgba(34,197,94,0.4);
+  --red:#ef4444;
+}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text)}
+
+/* ── VIEWS ── */
+#view-display,#view-admin{position:fixed;inset:0;transition:opacity 0.4s}
+#view-admin{z-index:100;display:none}
+
+/* ── ADMIN PANEL ── */
+.admin-wrap{
+  height:100vh;overflow-y:auto;
+  background:#111118;
+  padding:2rem;
+}
+.admin-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:1.5rem;padding-bottom:1rem;
+  border-bottom:1px solid rgba(255,255,255,0.1);
+}
+.admin-title{font-size:20px;font-weight:700;color:#fff}
+.admin-subtitle{font-size:13px;color:var(--text-dim);margin-top:2px}
+.btn-view{
+  padding:10px 24px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;border:none;
+  background:linear-gradient(135deg,var(--orange),var(--gold));color:#fff;
+  box-shadow:0 4px 16px rgba(249,115,22,0.4);transition:transform 0.15s,box-shadow 0.15s;
+}
+.btn-view:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(249,115,22,0.5)}
+.btn-fullscreen{
+  margin-left:10px;padding:6px 10px;border-radius:8px;font-size:16px;cursor:pointer;border:1px solid rgba(255,255,255,0.15);
+  background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);transition:all 0.15s;line-height:1;
+}
+.btn-fullscreen:hover{background:rgba(249,115,22,0.2);border-color:rgba(249,115,22,0.4);color:#fff}
+
+.admin-tabs{display:flex;gap:4px;margin-bottom:1.5rem;background:rgba(255,255,255,0.05);border-radius:10px;padding:4px}
+.admin-tab{
+  flex:1;padding:8px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;border:none;
+  background:transparent;color:var(--text-dim);transition:all 0.15s;
+}
+.admin-tab.active{background:rgba(249,115,22,0.2);color:var(--orange)}
+
+.admin-section{display:none}
+.admin-section.active{display:block}
+
+/* Admin cards */
+.admin-card{
+  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);
+  border-radius:12px;padding:1.25rem;margin-bottom:1rem;
+}
+/* ── Upload section ── */
+.upload-card{
+  background:rgba(249,115,22,0.06);border:1px dashed rgba(249,115,22,0.3);
+  border-radius:12px;padding:1.25rem;margin-bottom:1.5rem;
+}
+.upload-card-title{font-size:14px;font-weight:700;color:var(--orange);margin-bottom:0.75rem}
+.upload-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.upload-select{
+  padding:7px 12px;border-radius:8px;font-size:13px;font-weight:600;
+  background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);
+  color:#fff;cursor:pointer;
+}
+.upload-select option{background:#1a1a2e;color:#fff}
+.upload-btn{
+  padding:7px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;
+  background:rgba(249,115,22,0.2);border:1px solid rgba(249,115,22,0.4);color:var(--orange);
+  transition:all 0.15s;
+}
+.upload-btn:hover{background:rgba(249,115,22,0.35);color:#fff}
+.upload-status{font-size:12px;margin-top:0.6rem;min-height:18px;font-weight:600}
+.upload-status.ok{color:#4ade80}
+.upload-status.err{color:#f87171}
+.upload-hint{font-size:11px;color:var(--text-dim);margin-top:0.5rem;line-height:1.5}
+.btn-clear{
+  margin-top:1rem;padding:7px 16px;border-radius:8px;font-size:13px;font-weight:700;
+  cursor:pointer;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);
+  color:#f87171;transition:all 0.15s;
+}
+.btn-clear:hover{background:rgba(239,68,68,0.25);color:#fff}
+.admin-card-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:1rem;padding-bottom:0.75rem;
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.admin-card-title{font-size:15px;font-weight:700;color:#fff}
+.admin-card-sub{font-size:12px;color:var(--text-dim);margin-top:2px}
+.live-pct{
+  font-size:22px;font-weight:900;
+  transition:color 0.3s;
+}
+
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.field-group label{display:block;font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:5px}
+.field-group input{
+  width:100%;padding:9px 12px;background:rgba(255,255,255,0.07);
+  border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;
+  color:#fff;font-size:15px;font-weight:600;font-family:'Inter',sans-serif;outline:none;
+  transition:border-color 0.15s,box-shadow 0.15s;
+}
+.field-group input:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(249,115,22,0.15)}
+.field-group input::placeholder{color:rgba(255,255,255,0.2)}
+
+.progress-preview{
+  display:flex;align-items:center;gap:10px;margin-top:8px;
+  padding:8px 12px;border-radius:8px;background:rgba(255,255,255,0.04);
+}
+.progress-track{flex:1;height:6px;border-radius:3px;background:rgba(255,255,255,0.08);overflow:hidden}
+.progress-fill{height:100%;border-radius:3px;transition:width 0.5s cubic-bezier(0.4,0,0.2,1)}
+.progress-fill.green{background:linear-gradient(90deg,#22c55e,#16a34a)}
+.progress-fill.amber{background:linear-gradient(90deg,#f59e0b,#d97706)}
+.progress-fill.red{background:linear-gradient(90deg,#ef4444,#dc2626)}
+.progress-fill.orange{background:linear-gradient(90deg,var(--orange),var(--gold))}
+
+.name-input-row{margin-bottom:10px}
+.name-input-row input{
+  width:100%;padding:9px 12px;background:rgba(255,255,255,0.07);
+  border:1.5px solid rgba(255,255,255,0.1);border-radius:8px;
+  color:#fff;font-size:14px;font-weight:600;font-family:'Inter',sans-serif;outline:none;
+}
+.name-input-row input:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(249,115,22,0.15)}
+
+/* Rank color indicators */
+.rank-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.rank-dot.gold{background:var(--gold);box-shadow:0 0 6px var(--gold-glow)}
+.rank-dot.silver{background:var(--silver);box-shadow:0 0 6px var(--silver-glow)}
+.rank-dot.purple{background:var(--purple);box-shadow:0 0 6px var(--purple-glow)}
+
+/* ── DISPLAY SCREEN ── */
+#view-display{
+  display:flex;flex-direction:column;
+  background:var(--bg);overflow:hidden;
+}
+
+/* Ambient background */
+.ambient{
+  position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;
+}
+.amb-orb{
+  position:absolute;border-radius:50%;filter:blur(120px);
+  animation:breathe 6s ease-in-out infinite;
+}
+@keyframes breathe{0%,100%{transform:scale(1);opacity:0.6}50%{transform:scale(1.1);opacity:0.9}}
+
+/* Top bar */
+.top-bar{
+  position:relative;z-index:10;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1.2rem 3rem;border-bottom:1px solid rgba(255,255,255,0.06);
+  background:rgba(0,0,0,0.3);backdrop-filter:blur(20px);
+}
+.top-bar-title{font-size:13px;font-weight:600;color:var(--text-dim);letter-spacing:0.12em;text-transform:uppercase}
+.top-bar-campaign{font-size:20px;font-weight:800;color:#fff;letter-spacing:0.02em}
+.top-bar-timer{
+  font-size:13px;font-weight:600;color:var(--text-dim);
+  display:flex;align-items:center;gap:8px;
+}
+.timer-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 var(--green-glow)}50%{opacity:0.7;box-shadow:0 0 0 6px transparent}}
+
+/* Section title bar */
+.section-bar{
+  position:relative;z-index:10;
+  text-align:center;padding:1rem 0 0.5rem;
+}
+.section-label{
+  display:inline-flex;align-items:center;gap:10px;
+  font-size:12px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;
+  color:var(--text-dim);
+}
+.section-label::before,.section-label::after{
+  content:'';display:block;width:40px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2));
+}
+.section-label::after{transform:scaleX(-1)}
+
+/* ── LEADERBOARD ── */
+.leaderboard{
+  position:relative;z-index:10;flex:1;
+  display:flex;align-items:flex-end;justify-content:center;
+  gap:2rem;padding:0 3rem 2rem;
+}
+
+/* Card sizes — center is tallest */
+.lb-card{
+  position:relative;flex:1;max-width:340px;
+  border-radius:20px;
+  border:1px solid rgba(255,255,255,0.08);
+  backdrop-filter:blur(24px);
+  display:flex;flex-direction:column;align-items:center;
+  padding:0 1.75rem 1.75rem;
+  transition:transform 0.5s cubic-bezier(0.34,1.56,0.64,1);
+  overflow:visible;
+}
+.lb-card.rank-1{
+  max-width:420px;
+  background:rgba(245,166,35,0.06);
+  border-color:rgba(245,166,35,0.25);
+  box-shadow:0 0 80px rgba(245,166,35,0.12), inset 0 1px 0 rgba(245,166,35,0.15);
+  padding-bottom:2rem;
+}
+.lb-card.rank-2{
+  background:rgba(200,216,232,0.04);
+  border-color:rgba(200,216,232,0.18);
+  box-shadow:0 0 50px rgba(200,216,232,0.06);
+}
+.lb-card.rank-3{
+  background:rgba(168,85,247,0.05);
+  border-color:rgba(168,85,247,0.2);
+  box-shadow:0 0 50px rgba(168,85,247,0.08);
+}
+
+/* Gem */
+.gem-wrap{
+  margin-top:-60px;margin-bottom:0.5rem;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;
+}
+.gem-wrap img{
+  object-fit:contain;
+  filter:drop-shadow(0 0 30px var(--gem-glow));
+  animation:float 3s ease-in-out infinite;
+}
+.rank-1 .gem-wrap img{width:110px;height:110px;}
+.rank-2 .gem-wrap img,.rank-3 .gem-wrap img{width:80px;height:80px;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.rank-2 .gem-wrap img{animation-delay:0.8s}
+.rank-3 .gem-wrap img{animation-delay:1.6s}
+
+/* Rank badge */
+.rank-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:3px 12px;border-radius:20px;
+  font-size:10px;font-weight:800;letter-spacing:0.15em;text-transform:uppercase;
+  margin-bottom:0.75rem;
+}
+.rank-1 .rank-badge{background:rgba(245,166,35,0.2);color:var(--gold);border:1px solid rgba(245,166,35,0.4)}
+.rank-2 .rank-badge{background:rgba(200,216,232,0.1);color:var(--silver);border:1px solid rgba(200,216,232,0.3)}
+.rank-3 .rank-badge{background:rgba(168,85,247,0.15);color:var(--purple);border:1px solid rgba(168,85,247,0.35)}
+
+/* Name */
+.lb-name{
+  font-size:22px;font-weight:800;color:#fff;
+  text-align:center;line-height:1.2;margin-bottom:0.5rem;
+  min-height:2.4em;display:flex;align-items:center;justify-content:center;
+}
+.rank-1 .lb-name{font-size:26px}
+
+/* Metrics */
+.lb-divider{
+  width:100%;height:1px;margin:0.75rem 0;
+}
+.rank-1 .lb-divider{background:linear-gradient(90deg,transparent,rgba(245,166,35,0.3),transparent)}
+.rank-2 .lb-divider{background:linear-gradient(90deg,transparent,rgba(200,216,232,0.2),transparent)}
+.rank-3 .lb-divider{background:linear-gradient(90deg,transparent,rgba(168,85,247,0.25),transparent)}
+
+.lb-metrics{width:100%;display:flex;flex-direction:column;gap:10px}
+.lb-metric{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.lb-metric-label{font-size:11px;font-weight:500;color:var(--text-dim);white-space:nowrap}
+.lb-metric-value{font-size:22px;font-weight:900;line-height:1;letter-spacing:-0.02em}
+.rank-1 .lb-metric-value{font-size:28px}
+.rank-2 .lb-metric-value,.rank-3 .lb-metric-value{font-size:22px}
+
+.pct-value{
+  font-size:14px;font-weight:700;padding:2px 8px;border-radius:6px;
+  transition:color 0.3s,background 0.3s;
+}
+.pct-green{background:rgba(34,197,94,0.15);color:#4ade80}
+.pct-amber{background:rgba(245,158,11,0.15);color:#fbbf24}
+.pct-red{background:rgba(239,68,68,0.12);color:#f87171}
+.pct-dim{background:rgba(255,255,255,0.06);color:var(--text-dim)}
+
+/* Progress bar in card */
+.card-progress-wrap{
+  width:100%;height:5px;border-radius:3px;
+  background:rgba(255,255,255,0.08);overflow:hidden;
+  margin-top:4px;
+}
+.card-progress-fill{
+  height:100%;border-radius:3px;
+  transition:width 0.8s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* Bottom bar */
+.bottom-bar{
+  position:relative;z-index:10;
+  display:flex;align-items:center;justify-content:center;gap:3rem;
+  padding:0.75rem 3rem;border-top:1px solid rgba(255,255,255,0.05);
+  background:rgba(0,0,0,0.3);
+}
+.bottom-stat{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-dim)}
+.bottom-stat strong{color:var(--text-mid);font-weight:700}
+
+/* Admin toggle button (floating) */
+.admin-toggle{
+  position:fixed;bottom:20px;right:20px;z-index:200;
+  width:44px;height:44px;border-radius:12px;
+  background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:18px;transition:background 0.15s;
+  box-shadow:0 4px 16px rgba(0,0,0,0.5);
+}
+.admin-toggle:hover{background:rgba(255,255,255,0.15)}
+
+/* Section tabs on display */
+.display-tabs{
+  position:relative;z-index:10;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  padding:0.6rem 0;
+}
+.display-tab{
+  padding:12px 36px;border-radius:24px;font-size:16px;font-weight:800;
+  cursor:pointer;border:1px solid rgba(255,255,255,0.1);letter-spacing:0.06em;
+  background:rgba(255,255,255,0.06);color:var(--text-dim);
+  transition:all 0.2s;text-transform:uppercase;
+}
+.display-tab.active{
+  background:linear-gradient(135deg,rgba(249,115,22,0.35),rgba(245,166,35,0.2));
+  color:var(--orange);border:1px solid rgba(249,115,22,0.5);
+  box-shadow:0 0 24px rgba(249,115,22,0.25);
+  font-size:18px;
+}
+.display-tab:hover:not(.active){background:rgba(255,255,255,0.1);color:#fff}
+
+/* Section panels */
+.section-panel{display:none}
+.section-panel.active{display:flex;flex-direction:column;flex:1;min-height:0}
+
+/* Responsive text for long names */
+.lb-name[data-len="long"]{font-size:18px}
+.rank-1 .lb-name[data-len="long"]{font-size:20px}
+
+/* Empty state */
+.empty-state{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  flex:1;gap:8px;opacity:0.35;
+}
+.empty-state-icon{font-size:40px}
+.empty-state-text{font-size:14px;font-weight:500;color:var(--text-dim)}
+
+/* ── COUNTRY GRID ── */
+.country-grid{
+  position:relative;z-index:10;flex:1;
+  display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;
+  padding:1.5rem 3rem;align-content:center;
+}
+.country-card{
+  position:relative;border-radius:20px;border:1px solid rgba(255,255,255,0.08);
+  background:rgba(255,255,255,0.03);backdrop-filter:blur(16px);
+  padding:2rem;cursor:pointer;text-align:center;
+  transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1),box-shadow 0.3s,border-color 0.3s;
+  overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:180px;
+}
+.country-card::before{
+  content:'';position:absolute;inset:0;border-radius:20px;
+  background:radial-gradient(ellipse at 50% 0%, rgba(249,115,22,0.08), transparent 70%);
+  opacity:0;transition:opacity 0.3s;
+}
+.country-card:hover{
+  transform:translateY(-6px) scale(1.02);
+  border-color:rgba(249,115,22,0.3);
+  box-shadow:0 20px 50px rgba(0,0,0,0.4), 0 0 40px rgba(249,115,22,0.08);
+}
+.country-card:hover::before{opacity:1}
+.country-card .flag{
+  font-size:42px;line-height:1;margin-bottom:12px;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.3));
+}
+.country-card .c-name{
+  font-size:20px;font-weight:800;color:#fff;position:relative;z-index:1;
+}
+.country-card .c-sub{
+  font-size:12px;color:var(--text-dim);margin-top:6px;position:relative;z-index:1;
+}
+.country-card .c-glow{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:80px;height:80px;border-radius:50%;
+  filter:blur(40px);opacity:0.3;transition:opacity 0.3s;
+}
+.country-card:hover .c-glow{opacity:0.6}
+
+/* ── COUNTRY DETAIL (TABLE) ── */
+.kam-detail{
+  position:relative;z-index:10;flex:1;
+  display:flex;flex-direction:column;
+  padding:0 3rem 0.5rem;overflow-y:hidden;
+}
+.kam-back{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:8px 16px;border-radius:10px;font-size:13px;font-weight:700;
+  background:rgba(255,255,255,0.06);color:var(--text-dim);border:1px solid rgba(255,255,255,0.1);
+  cursor:pointer;margin-bottom:0.6rem;align-self:flex-start;transition:all 0.15s;
+}
+.kam-back:hover{background:rgba(249,115,22,0.15);color:#fff;border-color:rgba(249,115,22,0.3)}
+.kam-day-tabs{display:flex;gap:6px;margin-bottom:0.75rem}
+.kam-day-tab{
+  padding:6px 18px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;
+  border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);
+  color:rgba(255,255,255,0.5);transition:all 0.15s;
+}
+.kam-day-tab.active{background:rgba(249,115,22,0.2);color:var(--orange);border-color:rgba(249,115,22,0.4)}
+.kam-day-tab:hover:not(.active){background:rgba(255,255,255,0.1);color:#fff}
+.kam-detail-title{
+  font-size:28px;font-weight:800;color:#fff;margin-bottom:0.25rem;
+  display:flex;align-items:center;gap:12px;
+}
+.kam-detail-sub{font-size:13px;color:var(--text-dim);margin-bottom:0.6rem}
+
+.kam-table-wrap{
+  border:1px solid rgba(255,255,255,0.08);border-radius:16px;overflow:hidden;
+  background:rgba(255,255,255,0.02);flex:1;
+}
+.kam-table{width:100%;border-collapse:collapse;height:100%}
+.kam-table thead th{
+  padding:8px 20px;text-align:left;font-size:11px;font-weight:700;
+  color:var(--text-dim);text-transform:uppercase;letter-spacing:0.1em;
+  background:rgba(255,255,255,0.04);border-bottom:1px solid rgba(255,255,255,0.08);
+}
+.kam-table thead th:last-child{text-align:center}
+.kam-table tbody tr{
+  border-bottom:1px solid rgba(255,255,255,0.05);
+  transition:background 0.15s;
+}
+.kam-table tbody tr:hover{background:rgba(255,255,255,0.03)}
+.kam-table tbody tr:nth-child(1){background:rgba(245,166,35,0.12)}
+.kam-table tbody tr:nth-child(1):hover{background:rgba(245,166,35,0.18)}
+.kam-table tbody tr:nth-child(2){background:rgba(192,200,210,0.1)}
+.kam-table tbody tr:nth-child(2):hover{background:rgba(192,200,210,0.16)}
+.kam-table tbody tr:nth-child(3){background:rgba(180,100,50,0.12)}
+.kam-table tbody tr:nth-child(3):hover{background:rgba(180,100,50,0.18)}
+.kam-table tbody tr:last-child{border-bottom:none}
+.kam-table tbody td{
+  padding:7px 20px;font-size:14px;color:#fff;
+}
+.kam-table tbody td:first-child{
+  font-weight:800;color:var(--gold);font-size:16px;width:60px;
+}
+.kam-table tbody td:last-child{text-align:center}
+.kam-table tbody td .cat-badge{
+  display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;
+}
+.cat-electronics{background:rgba(59,130,246,0.15);color:#60a5fa;border:1px solid rgba(59,130,246,0.25)}
+.cat-fashion{background:rgba(236,72,153,0.15);color:#f472b6;border:1px solid rgba(236,72,153,0.25)}
+.cat-fmcg{background:rgba(34,197,94,0.15);color:#4ade80;border:1px solid rgba(34,197,94,0.25)}
+.cat-gm{background:rgba(168,85,247,0.15);color:#c084fc;border:1px solid rgba(168,85,247,0.25)}
+
+/* Detail rank glow for top 3 */
+.kam-table tbody tr:nth-child(1) td:first-child{color:var(--gold);text-shadow:0 0 20px rgba(245,166,35,0.5)}
+.kam-table tbody tr:nth-child(2) td:first-child{color:var(--silver);text-shadow:0 0 16px rgba(200,216,232,0.4)}
+.kam-table tbody tr:nth-child(3) td:first-child{color:#cd7f32;text-shadow:0 0 16px rgba(205,127,50,0.5)}
+
+/* ── ADMIN COUNTRY TABS ── */
+.admin-country-tabs{
+  display:flex;gap:4px;margin-bottom:1rem;flex-wrap:wrap;
+}
+.admin-country-tab{
+  padding:6px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:none;
+  background:rgba(255,255,255,0.05);color:var(--text-dim);transition:all 0.15s;
+}
+.admin-country-tab.active{background:rgba(249,115,22,0.2);color:var(--orange);border:1px solid rgba(249,115,22,0.25)}
+.admin-country-tab:hover:not(.active){background:rgba(255,255,255,0.1);color:#fff}
+
+/* Admin KAM table */
+.admin-kam-table{width:100%;border-collapse:collapse;margin-top:0.5rem}
+.admin-kam-table th{
+  padding:10px 12px;text-align:left;font-size:10px;font-weight:700;
+  color:var(--text-dim);text-transform:uppercase;letter-spacing:0.08em;
+  background:rgba(255,255,255,0.03);border-bottom:1px solid rgba(255,255,255,0.08);
+}
+.admin-kam-table th:last-child{text-align:center}
+.admin-kam-table td{
+  padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.05);
+}
+.admin-kam-table td:first-child{font-weight:800;color:var(--gold);font-size:14px;width:50px;text-align:center}
+.admin-kam-table input[type="text"]{
+  width:100%;padding:8px 10px;background:rgba(255,255,255,0.05);
+  border:1.5px solid rgba(255,255,255,0.1);border-radius:6px;
+  color:#fff;font-size:13px;font-weight:600;font-family:'Inter',sans-serif;outline:none;
+}
+.admin-kam-table input[type="text"]:focus{border-color:var(--orange);box-shadow:0 0 0 2px rgba(249,115,22,0.15)}
+.admin-kam-table select{
+  width:100%;padding:8px 10px;background:rgba(255,255,255,0.05);
+  border:1.5px solid rgba(255,255,255,0.1);border-radius:6px;
+  color:#fff;font-size:13px;font-weight:600;font-family:'Inter',sans-serif;outline:none;
+  cursor:pointer;
+}
+.admin-kam-table select:focus{border-color:var(--orange);box-shadow:0 0 0 2px rgba(249,115,22,0.15)}
+.admin-kam-table option{background:#1a1a2e;color:#fff}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════ DISPLAY VIEW -->
+<div id="view-display">
+
+  <!-- Ambient orbs -->
+  <div class="ambient">
+    <div class="amb-orb" style="width:600px;height:600px;left:-200px;top:-200px;background:rgba(245,166,35,0.07)"></div>
+    <div class="amb-orb" style="width:500px;height:500px;right:-150px;bottom:-100px;background:rgba(168,85,247,0.07);animation-delay:2s"></div>
+    <div class="amb-orb" style="width:400px;height:400px;left:40%;top:20%;background:rgba(249,115,22,0.04);animation-delay:4s"></div>
+  </div>
+
+  <!-- Top bar -->
+  <div class="top-bar">
+    <div>
+      <div class="top-bar-title">SEA Ventures · 6.6 Super Wow Sale</div>
+      <div class="top-bar-campaign" id="display-campaign-name">Campaign Target Achievement</div>
+    </div>
+    <div class="display-tabs" id="display-tab-bar">
+      <button class="display-tab active" onclick="switchSection('kam')">👑 KAM Champions</button>
+    </div>
+    <div class="top-bar-timer">
+      <div class="timer-dot"></div>
+      <span id="timer-display">Jun 5–8, 2026</span>
+      <button class="btn-fullscreen" onclick="toggleFullscreen()" title="Toggle Fullscreen">⛶</button>
+    </div>
+  </div>
+
+  <!-- ── KAM Section -->
+  <div class="section-panel active" id="section-kam">
+    <!-- Country Grid -->
+    <div class="country-grid" id="kam-country-grid"></div>
+    <!-- Country Detail (hidden by default) -->
+    <div class="kam-detail" id="kam-country-detail" style="display:none">
+      <button class="kam-back" onclick="showCountryGrid()">← Back to Countries</button>
+      <div class="kam-day-tabs" id="kam-day-tabs">
+        <button class="kam-day-tab active" onclick="switchKAMDay(1)">Day 1</button>
+        <button class="kam-day-tab" onclick="switchKAMDay(2)">Day 2</button>
+      </div>
+      <div class="kam-detail-sub" id="kam-detail-sub">Top 10 KAM Champions ranked by target achievement</div>
+      <div class="kam-table-wrap">
+        <table class="kam-table">
+          <thead>
+            <tr><th>Rank</th><th>KAM Name</th><th>Category</th><th>Achievement</th></tr>
+          </thead>
+          <tbody id="kam-detail-table"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="bottom-bar" id="bottom-kam" style="display:none"></div>
+  </div>
+
+  <!-- ── Team Section -->
+  <div class="section-panel" id="section-team">
+    <div class="section-bar">
+      <div class="section-label">Best Category Team &nbsp;·&nbsp; Full Campaign Target Achievement</div>
+    </div>
+    <div class="leaderboard" id="lb-team"></div>
+    <div class="bottom-bar" id="bottom-team"></div>
+  </div>
+
+  <!-- ── LCM Section -->
+  <div class="section-panel" id="section-lcm">
+    <div class="section-bar">
+      <div class="section-label">SEA Category Champion &nbsp;·&nbsp; Target Achievement + Behaviors</div>
+    </div>
+    <div class="leaderboard" id="lb-lcm"></div>
+    <div class="bottom-bar" id="bottom-lcm"></div>
+  </div>
+
+</div><!-- /view-display -->
+
+<!-- ═══════════════════════════════════════════════════════ ADMIN VIEW -->
+<div id="view-admin">
+<div class="admin-wrap">
+  <div class="admin-header">
+    <div>
+      <div class="admin-title">⚙️ Admin Input Panel</div>
+      <div class="admin-subtitle">Enter data here — the display screen updates live</div>
+    </div>
+    <button class="btn-view" onclick="showDisplay()">▶ Show Display</button>
+  </div>
+
+  <!-- Admin tabs -->
+  <div class="admin-tabs">
+    <button class="admin-tab active" onclick="switchAdminTab('kam')">👑 KAM Champions</button>
+  </div>
+
+  <!-- KAM admin -->
+  <div class="admin-section active" id="admin-kam">
+    <p style="font-size:12px;color:var(--text-dim);margin-bottom:1rem">
+      Enter the top 10 KAM Champions per country. Select a country tab below.
+    </p>
+
+    <!-- Upload card -->
+    <div class="upload-card">
+      <div class="upload-card-title">📂 Import from Excel / CSV</div>
+      <div class="upload-controls">
+        <select class="upload-select" id="upload-country">
+          <option value="">— Country —</option>
+          <option>Indonesia</option><option>Malaysia</option><option>Philippines</option>
+          <option>Singapore</option><option>Thailand</option><option>Vietnam</option>
+        </select>
+        <select class="upload-select" id="upload-day">
+          <option value="">— Day —</option>
+          <option value="1">Day 1</option>
+          <option value="2">Day 2</option>
+        </select>
+        <input type="file" id="upload-file" accept=".csv,.xlsx,.xls" style="display:none" onchange="handleUpload(this)" />
+        <button class="upload-btn" onclick="triggerUpload()">⬆ Upload File</button>
+      </div>
+      <div class="upload-status" id="upload-status"></div>
+      <div class="upload-hint">
+        CSV/Excel columns (in order): <strong>Employee ID, Name, Category, Target Achievement %</strong> — one row per KAM (up to 10 rows). First row can be a header, it will be skipped automatically.
+      </div>
+    </div>
+
+    <div class="admin-country-tabs" id="admin-kam-country-tabs"></div>
+    <div id="admin-kam-panels"></div>
+  </div>
+
+  <!-- Team admin -->
+  <div class="admin-section" id="admin-team">
+    <p style="font-size:12px;color:var(--text-dim);margin-bottom:1rem">
+      Enter target achievement for each category team. Top 3 shown on display.
+    </p>
+    <div id="team-cards"></div>
+  </div>
+
+  <!-- LCM admin -->
+  <div class="admin-section" id="admin-lcm">
+    <p style="font-size:12px;color:var(--text-dim);margin-bottom:1rem">
+      Enter composite scores for LCMs (70% target + 30% behavior). Top 3 shown on display.
+    </p>
+    <div id="lcm-cards"></div>
+  </div>
+
+</div>
+</div><!-- /view-admin -->
+
+<!-- Floating gear button -->
+<button class="admin-toggle" id="toggle-btn" onclick="toggleView()" title="Toggle admin/display">⚙️</button>
+
+<script>
+// ─────────────────────────────────────────────
+// State
+// ─────────────────────────────────────────────
+const RANK_COLORS = {
+  1:{ gem:'gem-gold.png',  glow:'rgba(245,166,35,0.6)',  cls:'rank-1', badge:'TOP 1', valColor:'#fbbf24' },
+  2:{ gem:'gem-silver.png',glow:'rgba(200,216,232,0.5)', cls:'rank-2', badge:'TOP 2', valColor:'#e2e8f0' },
+  3:{ gem:'gem-purple.png',glow:'rgba(168,85,247,0.55)', cls:'rank-3', badge:'TOP 3', valColor:'#d8b4fe' },
+};
+
+const pct = (a,t) => t===0 ? 0 : Math.round((a/t)*100);
+const pctCls = p => p>=100?'pct-green':p>=75?'pct-amber':p>0?'pct-red':'pct-dim';
+const barCls = p => p>=100?'green':p>=75?'amber':p>0?'red':'orange';
+const fmt = n => n===0 ? '—' : Number(n).toLocaleString();
+
+// Data stores
+const COUNTRIES = ['Indonesia','Malaysia','Philippines','Singapore','Thailand','Vietnam'];
+const CAT_OPTIONS = ['Electronics','Fashion','FMCG','General Merchandise'];
+const CAT_CLASS = {Electronics:'cat-electronics',Fashion:'cat-fashion',FMCG:'cat-fmcg','General Merchandise':'cat-gm'};
+const CAT_SHORT = {Electronics:'Elec',Fashion:'Fash',FMCG:'FMCG','General Merchandise':'GM'};
+const FLAG = {Indonesia:'🇮🇩',Malaysia:'🇲🇾',Philippines:'🇵🇭',Singapore:'🇸🇬',Thailand:'🇹🇭',Vietnam:'🇻🇳'};
+
+function makeKAMList() {
+  return Array.from({length:10}, (_,i) => ({name:'', category:'Electronics', actual:0, target:0, rank:i+1}));
+}
+
+function makeKAMDays() {
+  return { 1: makeKAMList(), 2: makeKAMList() };
+}
+
+const data = {
+  kam: Object.fromEntries(COUNTRIES.map(c => [c, makeKAMDays()])),
+  team: [
+    { name:'Electronics', actual:0, target:0 },
+    { name:'Fashion',     actual:0, target:0 },
+    { name:'FMCG',        actual:0, target:0 },
+    { name:'General Merchandise', actual:0, target:0 },
+  ],
+  lcm: [
+    { name:'', venture:'', actual:0, target:0, behaviorScore:0 },
+    { name:'', venture:'', actual:0, target:0, behaviorScore:0 },
+    { name:'', venture:'', actual:0, target:0, behaviorScore:0 },
+  ],
+};
+
+// KAM view state
+let kamActiveCountry = null;
+let kamActiveDay = 1;
+let adminKAMCountry = 'Indonesia';
+let adminKAMDay = 1;
+
+// ─────────────────────────────────────────────
+// View toggling
+// ─────────────────────────────────────────────
+let currentView = 'display';
+let currentSection = 'kam';
+
+function toggleFullscreen(){
+  const btn = document.querySelector('.btn-fullscreen');
+  if(!document.fullscreenElement){
+    document.documentElement.requestFullscreen();
+    btn.textContent = '⊠';
+    btn.title = 'Exit Fullscreen';
+  } else {
+    document.exitFullscreen();
+    btn.textContent = '⛶';
+    btn.title = 'Toggle Fullscreen';
+  }
+}
+document.addEventListener('fullscreenchange', () => {
+  const btn = document.querySelector('.btn-fullscreen');
+  if(btn) btn.textContent = document.fullscreenElement ? '⊠' : '⛶';
+});
+
+function showDisplay(){
+  currentView = 'display';
+  document.getElementById('view-display').style.display='flex';
+  document.getElementById('view-admin').style.display='none';
+  document.getElementById('toggle-btn').textContent='⚙️';
+}
+function showAdmin(){
+  currentView = 'admin';
+  document.getElementById('view-display').style.display='none';
+  document.getElementById('view-admin').style.display='block';
+  document.getElementById('toggle-btn').textContent='◀ Back';
+}
+function toggleView(){
+  currentView==='display' ? showAdmin() : showDisplay();
+}
+
+function switchSection(s){
+  currentSection = s;
+  document.querySelectorAll('.section-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('section-'+s).classList.add('active');
+  document.querySelectorAll('.display-tab').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  if(s==='kam') showCountryGrid();
+}
+
+function switchAdminTab(t){
+  document.querySelectorAll('.admin-section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('admin-'+t).classList.add('active');
+  document.querySelectorAll('.admin-tab').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+// ─────────────────────────────────────────────
+// Admin card builders
+// ─────────────────────────────────────────────
+function buildAdminCards(){
+  buildKAMAdmin();
+  buildTeamAdmin();
+  buildLCMAdmin();
+}
+
+function buildKAMAdmin(){
+  // Build country tabs
+  const tabsEl = document.getElementById('admin-kam-country-tabs');
+  tabsEl.innerHTML = COUNTRIES.map(c =>
+    `<button class="admin-country-tab ${c===adminKAMCountry?'active':''}" onclick="switchAdminKAMCountry('${c}')">${FLAG[c]} ${c}</button>`
+  ).join('');
+
+  // Build panels for each country
+  const panelsEl = document.getElementById('admin-kam-panels');
+  panelsEl.innerHTML = '';
+  COUNTRIES.forEach(country => {
+    const isActive = country === adminKAMCountry;
+    const allDays = data.kam[country];
+    const totalFilled = Object.values(allDays).reduce((s, list) => s + list.filter(k => k.name.trim()).length, 0);
+
+    // Day sub-tabs
+    const dayTabs = [1,2].map(d =>
+      `<button class="kam-day-tab ${d===adminKAMDay&&isActive?'active':''}" onclick="switchAdminKAMDay(${d},'${country}')">Day ${d}</button>`
+    ).join('');
+
+    // Rows for active day
+    const list = allDays[adminKAMDay];
+    const rows = list.map((k, i) => {
+      const opts = CAT_OPTIONS.map(cat =>
+        `<option value="${cat}" ${k.category===cat?'selected':''}>${cat}</option>`
+      ).join('');
+      return `
+      <tr>
+        <td>${i+1}</td>
+        <td><input type="text" placeholder="KAM Name" value="${k.name}"
+          oninput="data.kam['${country}'][${adminKAMDay}][${i}].name=this.value;renderKAMCountryGrid();if(kamActiveCountry==='${country}')renderKAMDetail('${country}')" /></td>
+        <td>
+          <select onchange="data.kam['${country}'][${adminKAMDay}][${i}].category=this.value;if(kamActiveCountry==='${country}')renderKAMDetail('${country}')">
+            ${opts}
+          </select>
+        </td>
+        <td><input type="number" min="0" placeholder="Ach %" value="${k.actual||''}"
+          oninput="data.kam['${country}'][${adminKAMDay}][${i}].actual=+this.value||0;if(kamActiveCountry==='${country}')renderKAMDetail('${country}')" /></td>
+        <td><input type="number" min="0" placeholder="Target" value="${k.target||''}"
+          oninput="data.kam['${country}'][${adminKAMDay}][${i}].target=+this.value||0;if(kamActiveCountry==='${country}')renderKAMDetail('${country}')" /></td>
+      </tr>`;
+    }).join('');
+
+    panelsEl.innerHTML += `
+    <div class="admin-card" id="admin-kam-panel-${country}" style="display:${isActive?'block':'none'}">
+      <div class="admin-card-header">
+        <div>
+          <div class="admin-card-title">${FLAG[country]} ${country} — KAM Champions</div>
+          <div class="admin-card-sub">${totalFilled} entries across 4 days</div>
+        </div>
+      </div>
+      <div class="kam-day-tabs" style="margin-bottom:1rem">${dayTabs}</div>
+      <table class="admin-kam-table">
+        <thead>
+          <tr><th>#</th><th>Name</th><th>Category</th><th>Achievement %</th><th>Target</th></tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <button class="btn-clear" onclick="clearKAMDay('${country}', ${adminKAMDay})">🗑 Clear All</button>
+    </div>`;
+  });
+}
+
+function switchAdminKAMCountry(country){
+  adminKAMCountry = country;
+  buildKAMAdmin();
+}
+
+function switchAdminKAMDay(day, country){
+  adminKAMDay = day;
+  adminKAMCountry = country;
+  buildKAMAdmin();
+}
+
+function clearKAMDay(country, day){
+  if(!confirm(`Clear all entries for ${country} – Day ${day}?`)) return;
+  data.kam[country][day] = makeKAMList();
+  if(kamActiveCountry === country) renderKAMDetail(country);
+  renderKAMCountryGrid();
+  buildKAMAdmin();
+}
+
+function buildTeamAdmin(){
+  const el = document.getElementById('team-cards');
+  el.innerHTML = '';
+  const CAT_EMOJI = {Electronics:'⚡',Fashion:'✨',FMCG:'🛒','General Merchandise':'📦'};
+  data.team.forEach((d,i) => {
+    const p = pct(d.actual, d.target);
+    const barW = Math.min(p,100);
+    const bc = barCls(p);
+    el.innerHTML += `
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <div>
+          <div class="admin-card-title">${CAT_EMOJI[d.name]||'📊'} ${d.name}</div>
+          <div class="admin-card-sub">Category team achievement</div>
+        </div>
+        <div class="live-pct" style="color:${p>=100?'#4ade80':p>=75?'#fbbf24':p>0?'#f87171':'rgba(255,255,255,0.3)'}" id="team-livepct-${i}">${p}%</div>
+      </div>
+      <div class="field-row">
+        <div class="field-group">
+          <label>Actual Achievement</label>
+          <input type="number" min="0" placeholder="0" value="${d.actual||''}"
+            oninput="data.team[${i}].actual=+this.value||0;renderLeaderboard('team');updateLivePct('team',${i},this)" />
+        </div>
+        <div class="field-group">
+          <label>Target</label>
+          <input type="number" min="0" placeholder="0" value="${d.target||''}"
+            oninput="data.team[${i}].target=+this.value||0;renderLeaderboard('team');updateLivePct('team',${i},this)" />
+        </div>
+      </div>
+      <div class="progress-preview">
+        <div class="progress-track"><div class="progress-fill ${bc}" id="team-bar-${i}" style="width:${barW}%"></div></div>
+        <span style="font-size:12px;font-weight:700;color:${p>=100?'#4ade80':p>=75?'#fbbf24':p>0?'#f87171':'rgba(255,255,255,0.3)'};min-width:40px;text-align:right" id="team-pct-${i}">${p}%</span>
+      </div>
+    </div>`;
+  });
+}
+
+function buildLCMAdmin(){
+  const el = document.getElementById('lcm-cards');
+  el.innerHTML = '';
+  [1,2,3].forEach(rank => {
+    const i = rank-1;
+    const d = data.lcm[i];
+    const rc = RANK_COLORS[rank];
+    const achPct = pct(d.actual, d.target);
+    const comp = Math.round(achPct*0.7 + (d.behaviorScore/10)*100*0.3);
+    const p = comp;
+
+    el.innerHTML += `
+    <div class="admin-card" style="border-color:${rank===1?'rgba(245,166,35,0.3)':rank===2?'rgba(200,216,232,0.2)':'rgba(168,85,247,0.2)'}">
+      <div class="admin-card-header">
+        <div>
+          <div class="admin-card-title" style="display:flex;align-items:center;gap:8px">
+            <span class="rank-dot ${rank===1?'gold':rank===2?'silver':'purple'}"></span>
+            ${rc.badge} — SEA Category Champion
+          </div>
+          <div class="admin-card-sub">Composite: 70% target + 30% behavior</div>
+        </div>
+        <div class="live-pct" style="color:${p>=100?'#4ade80':p>=75?'#fbbf24':p>0?'#f87171':'rgba(255,255,255,0.3)'}" id="lcm-livepct-${i}">${comp}pts</div>
+      </div>
+      <div class="field-row">
+        <div class="field-group">
+          <label>LCM Name</label>
+          <input type="text" placeholder="Name" value="${d.name}"
+            oninput="data.lcm[${i}].name=this.value;renderLeaderboard('lcm')" />
+        </div>
+        <div class="field-group">
+          <label>Venture</label>
+          <input type="text" placeholder="e.g. Lazada SG" value="${d.venture}"
+            oninput="data.lcm[${i}].venture=this.value;renderLeaderboard('lcm')" />
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field-group">
+          <label>Actual Achievement</label>
+          <input type="number" min="0" placeholder="0" value="${d.actual||''}"
+            oninput="data.lcm[${i}].actual=+this.value||0;renderLeaderboard('lcm');updateLcmPct(${i})" />
+        </div>
+        <div class="field-group">
+          <label>Target</label>
+          <input type="number" min="0" placeholder="0" value="${d.target||''}"
+            oninput="data.lcm[${i}].target=+this.value||0;renderLeaderboard('lcm');updateLcmPct(${i})" />
+        </div>
+      </div>
+      <div class="field-group" style="margin-bottom:10px">
+        <label style="display:flex;justify-content:space-between;align-items:center">
+          <span>Behavior Score (LCD rating)</span>
+          <span id="lcm-bscore-${i}" style="color:#fff;font-weight:700">${d.behaviorScore}/10</span>
+        </label>
+        <input type="range" min="0" max="10" step="0.5" value="${d.behaviorScore}"
+          style="width:100%;margin-top:6px;accent-color:var(--orange)"
+          oninput="data.lcm[${i}].behaviorScore=+this.value;document.getElementById('lcm-bscore-${i}').textContent=this.value+'/10';renderLeaderboard('lcm');updateLcmPct(${i})" />
+      </div>
+      <div class="progress-preview">
+        <div class="progress-track"><div class="progress-fill orange" id="lcm-bar-${i}" style="width:${Math.min(comp,100)}%"></div></div>
+        <span style="font-size:12px;font-weight:700;color:${comp>=100?'#4ade80':comp>=75?'#fbbf24':comp>0?'#f87171':'rgba(255,255,255,0.3)'};min-width:52px;text-align:right" id="lcm-pct-${i}">${comp}pts</span>
+      </div>
+    </div>`;
+  });
+}
+
+// Live update helpers
+function updateLivePct(section, i, input){
+  const d = data[section][i];
+  const p = pct(d.actual, d.target);
+  const bar = document.getElementById(section+'-bar-'+i);
+  const pctEl = document.getElementById(section+'-pct-'+i);
+  const liveEl = document.getElementById(section+'-livepct-'+i);
+  const col = p>=100?'#4ade80':p>=75?'#fbbf24':p>0?'#f87171':'rgba(255,255,255,0.3)';
+  if(bar){ bar.style.width=Math.min(p,100)+'%'; bar.className='progress-fill '+barCls(p); }
+  if(pctEl){ pctEl.textContent=p+'%'; pctEl.style.color=col; }
+  if(liveEl){ liveEl.textContent=p+'%'; liveEl.style.color=col; }
+}
+
+function updateLcmPct(i){
+  const d = data.lcm[i];
+  const achPct = pct(d.actual, d.target);
+  const comp = Math.round(achPct*0.7 + (d.behaviorScore/10)*100*0.3);
+  const bar = document.getElementById('lcm-bar-'+i);
+  const pctEl = document.getElementById('lcm-pct-'+i);
+  const liveEl = document.getElementById('lcm-livepct-'+i);
+  const col = comp>=100?'#4ade80':comp>=75?'#fbbf24':comp>0?'#f87171':'rgba(255,255,255,0.3)';
+  if(bar) bar.style.width=Math.min(comp,100)+'%';
+  if(pctEl){ pctEl.textContent=comp+'pts'; pctEl.style.color=col; }
+  if(liveEl){ liveEl.textContent=comp+'pts'; liveEl.style.color=col; }
+}
+
+// ─────────────────────────────────────────────
+// Display renderers
+// ─────────────────────────────────────────────
+function renderLeaderboard(section){
+  if(section==='kam') renderKAM();
+  if(section==='team') renderTeam();
+  if(section==='lcm') renderLCM();
+}
+
+function makeCard(rank, name, sub1, sub2, metric1Label, metric1Value, metric2Label, metric2Value, percentage){
+  const rc = RANK_COLORS[rank];
+  const p = parseInt(percentage)||0;
+  const barW = Math.min(p,100);
+  const nameLong = name.length > 18 ? 'long' : '';
+  const displaySub1 = sub1 ? `<div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:2px;text-align:center">${sub1}${sub2?' · '+sub2:''}</div>` : '';
+
+  return `
+  <div class="lb-card ${rc.cls}" style="--gem-glow:${rc.glow}">
+    <div class="gem-wrap">
+      <img src="${rc.gem}" alt="rank ${rank} gem"/>
+    </div>
+    <div class="rank-badge">${rc.badge}</div>
+    <div class="lb-name" data-len="${nameLong}">${name || '<span style="opacity:0.2">—</span>'}</div>
+    ${displaySub1}
+    <div class="lb-divider"></div>
+    <div class="lb-metrics">
+      <div class="lb-metric">
+        <span class="lb-metric-label">${metric1Label}</span>
+        <span class="lb-metric-value" style="color:${rc.valColor}">${metric1Value}</span>
+      </div>
+      <div style="width:100%">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+          <span class="lb-metric-label">${metric2Label}</span>
+          <span class="pct-value ${pctCls(p)}">${metric2Value}</span>
+        </div>
+        <div class="card-progress-wrap">
+          <div class="card-progress-fill" style="width:${barW}%;background:${rc.valColor}22;${barW>0?'background:'+( p>=100?'linear-gradient(90deg,#22c55e,#16a34a)':p>=75?'linear-gradient(90deg,#f59e0b,#d97706)':'linear-gradient(90deg,#ef4444,#dc2626)'):''}"></div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderKAMCountryGrid(){
+  const grid = document.getElementById('kam-country-grid');
+  const detail = document.getElementById('kam-country-detail');
+
+  grid.style.display = 'grid';
+  detail.style.display = 'none';
+
+  // Build 6 country cards — count filled across all days
+  grid.innerHTML = COUNTRIES.map(country => {
+    const allDayLists = Object.values(data.kam[country]);
+    const filled = allDayLists.reduce((s, list) => s + list.filter(k => k.name.trim()).length, 0);
+    const hasData = filled > 0;
+    const glowColor = hasData ? 'rgba(249,115,22,0.4)' : 'rgba(255,255,255,0.05)';
+
+    return `
+    <div class="country-card" onclick="showCountryDetail('${country}')">
+      <div class="c-glow" style="background:${glowColor}"></div>
+      <div class="flag">${FLAG[country]}</div>
+      <div class="c-name">${country}</div>
+      <div class="c-sub">${filled > 0 ? filled + ' KAMs ranked' : 'Click to view'}</div>
+    </div>`;
+  }).join('');
+}
+
+function showCountryDetail(country){
+  kamActiveCountry = country;
+  kamActiveDay = 1;
+  document.getElementById('kam-country-grid').style.display = 'none';
+  document.getElementById('kam-country-detail').style.display = 'flex';
+  // Reset day tab highlights
+  document.querySelectorAll('.kam-day-tab').forEach((btn, i) => {
+    btn.classList.toggle('active', i === 0);
+  });
+  renderKAMDetail(country);
+}
+
+function switchKAMDay(day){
+  kamActiveDay = day;
+  document.querySelectorAll('.kam-day-tab').forEach((btn, i) => {
+    btn.classList.toggle('active', i+1 === day);
+  });
+  if(kamActiveCountry) renderKAMDetail(kamActiveCountry);
+}
+
+function showCountryGrid(){
+  kamActiveCountry = null;
+  document.getElementById('kam-country-grid').style.display = 'grid';
+  document.getElementById('kam-country-detail').style.display = 'none';
+  renderKAMCountryGrid();
+}
+
+function renderKAMDetail(country){
+  const tbody = document.getElementById('kam-detail-table');
+
+  const list = data.kam[country][kamActiveDay];
+  const MEDALS = ['🥇', '🥈', '🥉'];
+  tbody.innerHTML = list.map((k, i) => {
+    const catCls = CAT_CLASS[k.category] || 'cat-electronics';
+    const isEmpty = !k.name.trim();
+    const rank = i < 3 ? `${MEDALS[i]} ${i+1}` : i+1;
+    const achPct = pct(k.actual, k.target);
+    const achColor = k.target === 0 ? 'rgba(255,255,255,0.2)' : i < 3 ? '#4ade80' : 'rgba(134,239,172,0.5)';
+    const achWeight = i < 3 ? '800' : '600';
+    const achDisplay = isEmpty || k.target === 0
+      ? '<span style="opacity:0.15">—</span>'
+      : `<span style="font-weight:${achWeight};color:${achColor};font-size:14px">${achPct}%</span>`;
+    return `
+    <tr>
+      <td>${rank}</td>
+      <td style="${isEmpty?'opacity:0.25':''}">${isEmpty ? '—' : k.name}</td>
+      <td>${isEmpty ? '<span style="opacity:0.15">—</span>' : '<span class="cat-badge '+catCls+'">'+k.category+'</span>'}</td>
+      <td style="text-align:center">${achDisplay}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderKAM(){
+  if(kamActiveCountry){
+    renderKAMDetail(kamActiveCountry);
+  } else {
+    renderKAMCountryGrid();
+  }
+}
+
+function renderTeam(){
+  const lb = document.getElementById('lb-team');
+  const bottom = document.getElementById('bottom-team');
+  const CAT_EMOJI = {Electronics:'⚡',Fashion:'✨',FMCG:'🛒','General Merchandise':'📦'};
+
+  // Sort by % desc, take top 3 for display, podium order [2,1,3]
+  const sorted = [...data.team].sort((a,b)=>pct(b.actual,b.target)-pct(a.actual,a.target));
+  const top3 = sorted.slice(0,3);
+  const order = [top3[1]||null, top3[0]||null, top3[2]||null];
+  const ranks = [2, 1, 3];
+
+  lb.innerHTML = order.map((entry, i) => {
+    if(!entry) return `<div class="lb-card ${RANK_COLORS[ranks[i]].cls}" style="--gem-glow:${RANK_COLORS[ranks[i]].glow};min-height:240px;justify-content:center"><div style="opacity:0.2;font-size:32px">—</div></div>`;
+    const rank = ranks[i];
+    const p = pct(entry.actual, entry.target);
+    const emoji = CAT_EMOJI[entry.name]||'📊';
+    return makeCard(rank,
+      emoji+' '+entry.name, '', '',
+      'Actual Achievement', fmt(entry.actual),
+      'Target Achievement', p+'%', p
+    );
+  }).join('');
+
+  // Show all 4 in bottom
+  const allStats = data.team.map(t=>{
+    const p = pct(t.actual, t.target);
+    return `<div class="bottom-stat">${CAT_EMOJI[t.name]||''} <strong>${t.name}:</strong> ${fmt(t.actual)} / ${fmt(t.target)} <span style="color:${p>=100?'#4ade80':p>=75?'#fbbf24':p>0?'#f87171':'rgba(255,255,255,0.4)'};font-weight:700">(${p}%)</span></div>`;
+  }).join('');
+  bottom.innerHTML = allStats + `<div class="bottom-stat">🎁 Reward: <strong>$100 USD team budget</strong></div>`;
+}
+
+function renderLCM(){
+  const lb = document.getElementById('lb-lcm');
+  const bottom = document.getElementById('bottom-lcm');
+  const d = data.lcm;
+
+  const order = [d[1], d[0], d[2]];
+  const ranks = [2, 1, 3];
+
+  lb.innerHTML = order.map((entry, i) => {
+    const rank = ranks[i];
+    const achPct = pct(entry.actual, entry.target);
+    const comp = Math.round(achPct*0.7 + (entry.behaviorScore/10)*100*0.3);
+    return makeCard(rank,
+      entry.name || '—',
+      entry.venture, '',
+      'Composite Score', comp > 0 ? comp+'pts' : '—',
+      'Target Achievement', achPct+'%', achPct
+    );
+  }).join('');
+
+  bottom.innerHTML = `
+    <div class="bottom-stat">📊 Scoring: <strong>70% Target Achievement</strong></div>
+    <div class="bottom-stat">+</div>
+    <div class="bottom-stat">🌟 <strong>30% Behaviors</strong> (Ownership · Be All In)</div>
+    <div class="bottom-stat">🎁 Reward: <strong>$100 USD wellness items</strong></div>
+  `;
+}
+
+// ─────────────────────────────────────────────
+// Timer
+// ─────────────────────────────────────────────
+function updateTimer(){
+  const end = new Date('2026-06-08T23:59:00+08:00');
+  const now = new Date();
+  const diff = end - now;
+  const el = document.getElementById('timer-display');
+  if(!el) return;
+  if(diff<=0){ el.textContent='Campaign Complete ✓'; return; }
+  const d=Math.floor(diff/86400000);
+  const h=Math.floor((diff%86400000)/3600000);
+  const m=Math.floor((diff%3600000)/60000);
+  el.textContent = d>0 ? `${d}d ${h}h ${m}m remaining` : `${h}h ${m}m remaining`;
+}
+
+// ─────────────────────────────────────────────
+// Init
+// ─────────────────────────────────────────────
+buildAdminCards();
+renderKAMCountryGrid();
+renderLeaderboard('team');
+renderLeaderboard('lcm');
+updateTimer();
+setInterval(updateTimer, 30000);
+
+// ─────────────────────────────────────────────
+// File Upload (CSV / Excel)
+// ─────────────────────────────────────────────
+function triggerUpload(){
+  const country = document.getElementById('upload-country').value;
+  const day = document.getElementById('upload-day').value;
+  const status = document.getElementById('upload-status');
+  if(!country){ status.className='upload-status err'; status.textContent='Please select a country first.'; return; }
+  if(!day){     status.className='upload-status err'; status.textContent='Please select a day first.'; return; }
+  document.getElementById('upload-file').click();
+}
+
+function handleUpload(input){
+  const file = input.files[0];
+  if(!file) return;
+  const country = document.getElementById('upload-country').value;
+  const day = parseInt(document.getElementById('upload-day').value);
+  const status = document.getElementById('upload-status');
+  const ext = file.name.split('.').pop().toLowerCase();
+
+  const reader = new FileReader();
+
+  if(ext === 'csv'){
+    reader.onload = e => {
+      try {
+        const rows = parseCSV(e.target.result);
+        applyUploadedRows(rows, country, day, status);
+      } catch(err) {
+        status.className='upload-status err'; status.textContent='Error reading CSV: ' + err.message;
+      }
+    };
+    reader.readAsText(file);
+  } else if(ext === 'xlsx' || ext === 'xls'){
+    reader.onload = e => {
+      try {
+        const rows = parseXLSX(e.target.result);
+        applyUploadedRows(rows, country, day, status);
+      } catch(err) {
+        status.className='upload-status err'; status.textContent='Error reading Excel file: ' + err.message;
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  } else {
+    status.className='upload-status err'; status.textContent='Unsupported file type. Please use .csv or .xlsx';
+  }
+  // Reset input so same file can be re-uploaded
+  input.value = '';
+}
+
+function parseCSV(text){
+  const lines = text.trim().split(/\r?\n/).filter(l => l.trim());
+  const rows = lines.map(line => {
+    // Handle quoted fields
+    const cols = [];
+    let cur = '', inQ = false;
+    for(let i=0; i<line.length; i++){
+      const ch = line[i];
+      if(ch==='"'){ inQ=!inQ; }
+      else if(ch===','&&!inQ){ cols.push(cur.trim()); cur=''; }
+      else { cur+=ch; }
+    }
+    cols.push(cur.trim());
+    return cols;
+  });
+  // Skip header row if first cell is non-numeric and looks like a label
+  const isHeader = isNaN(rows[0]&&rows[0][0]) && /name|kam|rank|employee|id/i.test(rows[0][0]||'');
+  return isHeader ? rows.slice(1) : rows;
+}
+
+function parseXLSX(buffer){
+  // Minimal XLSX parser — extracts shared strings and sheet data from the zip
+  // Uses built-in DecompressionStream if available, otherwise falls back to simple XML scan
+  const bytes = new Uint8Array(buffer);
+  const text = new TextDecoder('utf-8', {fatal:false}).decode(bytes);
+
+  // Extract all cell values via regex across the raw binary (works for simple xlsx)
+  // Find sharedStrings
+  const ssMatch = text.match(/<sst[^>]*>([\s\S]*?)<\/sst>/);
+  const sharedStrings = [];
+  if(ssMatch){
+    const siMatches = ssMatch[1].matchAll(/<t[^>]*>([^<]*)<\/t>/g);
+    for(const m of siMatches) sharedStrings.push(m[1]);
+  }
+
+  // Find sheet1 data
+  const sheetMatch = text.match(/<sheetData>([\s\S]*?)<\/sheetData>/);
+  if(!sheetMatch) throw new Error('Could not read sheet data. Try saving as CSV instead.');
+
+  const rows = [];
+  const rowMatches = sheetMatch[1].matchAll(/<row[^>]*>([\s\S]*?)<\/row>/g);
+  for(const rowM of rowMatches){
+    const cells = [];
+    const cellMatches = rowM[1].matchAll(/<c[^>]*(?:t="([^"]*)")?[^>]*>[\s\S]*?<v>([^<]*)<\/v>[\s\S]*?<\/c>/g);
+    for(const cellM of cellMatches){
+      const type = cellM[1];
+      const val  = cellM[2];
+      cells.push(type==='s' ? (sharedStrings[parseInt(val)]||'') : val);
+    }
+    if(cells.length) rows.push(cells);
+  }
+
+  // Skip header if first row looks like labels
+  const isHeader = rows.length && isNaN(rows[0][0]) && /name|kam|rank|employee|id/i.test(rows[0][0]||'');
+  return isHeader ? rows.slice(1) : rows;
+}
+
+function applyUploadedRows(rows, country, day, statusEl){
+  if(!rows.length){ statusEl.className='upload-status err'; statusEl.textContent='No data rows found in file.'; return; }
+
+  const CAT_VALID = ['Electronics','Fashion','FMCG','General Merchandise'];
+  let applied = 0;
+
+  rows.slice(0, 10).forEach((cols, i) => {
+    const name     = (cols[1]||'').toString().trim();
+    const rawCat   = (cols[2]||'').toString().trim();
+    const achPct   = parseFloat((cols[3]||'').toString().replace('%',''))||0;
+
+    // Fuzzy match category
+    const category = CAT_VALID.find(c => c.toLowerCase() === rawCat.toLowerCase())
+                  || CAT_VALID.find(c => c.toLowerCase().includes(rawCat.toLowerCase()))
+                  || 'Electronics';
+
+    // Store achievement % as actual/100 target so pct() returns it directly
+    data.kam[country][day][i] = { ...data.kam[country][day][i], name, category, actual: achPct, target: 100 };
+    if(name) applied++;
+  });
+
+  // Refresh display and admin panel
+  renderKAMCountryGrid();
+  if(kamActiveCountry === country) renderKAMDetail(country);
+  adminKAMCountry = country;
+  adminKAMDay = day;
+  buildKAMAdmin();
+
+  statusEl.className='upload-status ok';
+  statusEl.textContent=`✓ Imported ${applied} KAM${applied!==1?'s':''} into ${country} – Day ${day}`;
+}
+</script>
+</body>
+</html>
