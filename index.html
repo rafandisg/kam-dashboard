@@ -94,6 +94,20 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Inter',sans-serif;
   color:#f87171;transition:all 0.15s;
 }
 .btn-clear:hover{background:rgba(239,68,68,0.25);color:#fff}
+.admin-datetime-row{
+  display:flex;align-items:center;gap:10px;margin-bottom:1rem;
+  padding:10px 14px;border-radius:10px;
+  background:rgba(249,115,22,0.06);border:1px solid rgba(249,115,22,0.15);
+}
+.admin-datetime-row label{font-size:11px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:0.08em;white-space:nowrap}
+.admin-datetime-row input[type="datetime-local"]{
+  flex:1;padding:7px 12px;border-radius:8px;font-size:13px;font-weight:600;
+  font-family:'Inter',sans-serif;
+  background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.1);
+  color:#fff;outline:none;transition:border-color 0.15s,box-shadow 0.15s;
+}
+.admin-datetime-row input[type="datetime-local"]:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(249,115,22,0.15)}
+.admin-datetime-row input[type="datetime-local"]::-webkit-calendar-picker-indicator{filter:invert(1) brightness(0.7)}
 .admin-card-header{
   display:flex;align-items:center;justify-content:space-between;
   margin-bottom:1rem;padding-bottom:0.75rem;
@@ -416,6 +430,19 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Inter',sans-serif;
 }
 .kam-day-tab.active{background:rgba(249,115,22,0.2);color:var(--orange);border-color:rgba(249,115,22,0.4)}
 .kam-day-tab:hover:not(.active){background:rgba(255,255,255,0.1);color:#fff}
+.kam-datetime-row{
+  display:flex;align-items:center;gap:10px;margin-bottom:0.75rem;
+  font-size:13px;color:var(--text-dim);
+}
+.kam-datetime-row .dt-label{font-weight:600;letter-spacing:0.05em;text-transform:uppercase;font-size:11px}
+.kam-datetime-row .dt-value{
+  display:flex;align-items:center;gap:6px;
+  padding:4px 12px;border-radius:8px;
+  background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);
+  color:#fff;font-weight:600;font-size:13px;cursor:default;
+}
+.kam-datetime-row .dt-value:empty{opacity:0.3}
+.kam-datetime-row .dt-value .dt-icon{font-size:14px}
 .kam-detail-title{
   font-size:28px;font-weight:800;color:#fff;margin-bottom:0.25rem;
   display:flex;align-items:center;gap:12px;
@@ -542,6 +569,10 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Inter',sans-serif;
       <div class="kam-day-tabs" id="kam-day-tabs">
         <button class="kam-day-tab active" onclick="switchKAMDay(1)">Day 1</button>
         <button class="kam-day-tab" onclick="switchKAMDay(2)">Day 2</button>
+      </div>
+      <div class="kam-datetime-row" id="kam-datetime-row">
+        <span class="dt-label">Date & Time</span>
+        <span class="dt-value" id="kam-datetime-display"></span>
       </div>
       <div class="kam-detail-sub" id="kam-detail-sub">Top 10 KAM Champions ranked by target achievement</div>
       <div class="kam-table-wrap">
@@ -674,7 +705,7 @@ function makeKAMList() {
 }
 
 function makeKAMDays() {
-  return { 1: makeKAMList(), 2: makeKAMList() };
+  return { 1: { list: makeKAMList(), datetime: '' }, 2: { list: makeKAMList(), datetime: '' } };
 }
 
 const data = {
@@ -775,7 +806,7 @@ function buildKAMAdmin(){
   COUNTRIES.forEach(country => {
     const isActive = country === adminKAMCountry;
     const allDays = data.kam[country];
-    const totalFilled = Object.values(allDays).reduce((s, list) => s + list.filter(k => k.name.trim()).length, 0);
+    const totalFilled = Object.values(allDays).reduce((s, d) => s + d.list.filter(k => k.name.trim()).length, 0);
 
     // Day sub-tabs
     const dayTabs = [1,2].map(d =>
@@ -783,7 +814,8 @@ function buildKAMAdmin(){
     ).join('');
 
     // Rows for active day
-    const list = allDays[adminKAMDay];
+    const list = allDays[adminKAMDay].list;
+    const datetime = allDays[adminKAMDay].datetime;
     const rows = list.map((k, i) => {
       const opts = CAT_OPTIONS.map(cat =>
         `<option value="${cat}" ${k.category===cat?'selected':''}>${cat}</option>`
@@ -792,16 +824,16 @@ function buildKAMAdmin(){
       <tr>
         <td>${i+1}</td>
         <td><input type="text" placeholder="KAM Name" value="${k.name}"
-          oninput="data.kam['${country}'][${adminKAMDay}][${i}].name=this.value;renderKAMCountryGrid();if(kamActiveCountry==='${country}')renderKAMDetail('${country}')" /></td>
+          oninput="data.kam['${country}'][${adminKAMDay}].list[${i}].name=this.value;renderKAMCountryGrid();if(kamActiveCountry==='${country}')renderKAMDetail('${country}')" /></td>
         <td>
-          <select onchange="data.kam['${country}'][${adminKAMDay}][${i}].category=this.value;if(kamActiveCountry==='${country}')renderKAMDetail('${country}')">
+          <select onchange="data.kam['${country}'][${adminKAMDay}].list[${i}].category=this.value;if(kamActiveCountry==='${country}')renderKAMDetail('${country}')">
             ${opts}
           </select>
         </td>
         <td><input type="number" min="0" placeholder="Ach %" value="${k.actual||''}"
-          oninput="data.kam['${country}'][${adminKAMDay}][${i}].actual=+this.value||0;if(kamActiveCountry==='${country}')renderKAMDetail('${country}')" /></td>
+          oninput="data.kam['${country}'][${adminKAMDay}].list[${i}].actual=+this.value||0;if(kamActiveCountry==='${country}')renderKAMDetail('${country}')" /></td>
         <td><input type="number" min="0" placeholder="Target" value="${k.target||''}"
-          oninput="data.kam['${country}'][${adminKAMDay}][${i}].target=+this.value||0;if(kamActiveCountry==='${country}')renderKAMDetail('${country}')" /></td>
+          oninput="data.kam['${country}'][${adminKAMDay}].list[${i}].target=+this.value||0;if(kamActiveCountry==='${country}')renderKAMDetail('${country}')" /></td>
       </tr>`;
     }).join('');
 
@@ -814,6 +846,11 @@ function buildKAMAdmin(){
         </div>
       </div>
       <div class="kam-day-tabs" style="margin-bottom:1rem">${dayTabs}</div>
+      <div class="admin-datetime-row">
+        <label>📅 Date & Time</label>
+        <input type="datetime-local" value="${datetime||''}"
+          onchange="data.kam['${country}'][${adminKAMDay}].datetime=this.value;if(kamActiveCountry==='${country}'&&kamActiveDay===${adminKAMDay})renderKAMDetail('${country}')" />
+      </div>
       <table class="admin-kam-table">
         <thead>
           <tr><th>#</th><th>Name</th><th>Category</th><th>Achievement %</th><th>Target</th></tr>
@@ -838,7 +875,7 @@ function switchAdminKAMDay(day, country){
 
 function clearKAMDay(country, day){
   if(!confirm(`Clear all entries for ${country} – Day ${day}?`)) return;
-  data.kam[country][day] = makeKAMList();
+  data.kam[country][day] = { list: makeKAMList(), datetime: '' };
   if(kamActiveCountry === country) renderKAMDetail(country);
   renderKAMCountryGrid();
   buildKAMAdmin();
@@ -1024,7 +1061,7 @@ function renderKAMCountryGrid(){
   // Build 6 country cards — count filled across all days
   grid.innerHTML = COUNTRIES.map(country => {
     const allDayLists = Object.values(data.kam[country]);
-    const filled = allDayLists.reduce((s, list) => s + list.filter(k => k.name.trim()).length, 0);
+    const filled = allDayLists.reduce((s, d) => s + d.list.filter(k => k.name.trim()).length, 0);
     const hasData = filled > 0;
     const glowColor = hasData ? 'rgba(249,115,22,0.4)' : 'rgba(255,255,255,0.05)';
 
@@ -1068,8 +1105,22 @@ function showCountryGrid(){
 function renderKAMDetail(country){
   const tbody = document.getElementById('kam-detail-table');
 
-  const list = data.kam[country][kamActiveDay];
+  const list = data.kam[country][kamActiveDay].list;
+  const datetime = data.kam[country][kamActiveDay].datetime;
   const MEDALS = ['🥇', '🥈', '🥉'];
+
+  // Update datetime display
+  const dtDisplay = document.getElementById('kam-datetime-display');
+  if(dtDisplay){
+    if(datetime){
+      const dt = new Date(datetime);
+      const options = { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:true };
+      dtDisplay.innerHTML = `<span class="dt-icon">📅</span> ${dt.toLocaleString('en-US', options)}`;
+    } else {
+      dtDisplay.innerHTML = '<span style="opacity:0.3">No date set</span>';
+    }
+  }
+
   tbody.innerHTML = list.map((k, i) => {
     const catCls = CAT_CLASS[k.category] || 'cat-electronics';
     const isEmpty = !k.name.trim();
@@ -1306,7 +1357,7 @@ function applyUploadedRows(rows, country, day, statusEl){
                   || 'Electronics';
 
     // Store achievement % as actual/100 target so pct() returns it directly
-    data.kam[country][day][i] = { ...data.kam[country][day][i], name, category, actual: achPct, target: 100 };
+    data.kam[country][day].list[i] = { ...data.kam[country][day].list[i], name, category, actual: achPct, target: 100 };
     if(name) applied++;
   });
 
