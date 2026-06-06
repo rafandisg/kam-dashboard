@@ -648,7 +648,10 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Inter',sans-serif;
       </div>
       <div class="upload-status" id="upload-status"></div>
       <div class="upload-hint">
-        CSV/Excel columns (in order): <strong>Employee ID, Name, Category, Target Achievement %</strong> — one row per KAM (up to 10 rows). First row can be a header, it will be skipped automatically.
+        Accepted formats:<br>
+        <strong>4 columns:</strong> Employee ID, Name, Category, Target Achievement %<br>
+        <strong>3 columns:</strong> Name, Category, Target Achievement % (no Employee ID needed)<br>
+        Up to 10 rows. First row can be a header — it will be skipped automatically.
       </div>
     </div>
 
@@ -1346,10 +1349,20 @@ function applyUploadedRows(rows, country, day, statusEl){
   const CAT_VALID = ['Electronics','Fashion','FMCG','General Merchandise'];
   let applied = 0;
 
+  // Auto-detect column layout:
+  // 4-col: Employee ID | Name | Category | Achievement%
+  // 3-col: Name | Category | Achievement%  (no Employee ID)
+  const firstRow = rows[0];
+  const col1Val = (firstRow[1]||'').toString().trim();
+  const has4cols = firstRow.length >= 4 && !CAT_VALID.find(c => c.toLowerCase() === col1Val.toLowerCase());
+  const nameIdx = has4cols ? 1 : 0;
+  const catIdx  = has4cols ? 2 : 1;
+  const achIdx  = has4cols ? 3 : 2;
+
   rows.slice(0, 10).forEach((cols, i) => {
-    const name     = (cols[1]||'').toString().trim();
-    const rawCat   = (cols[2]||'').toString().trim();
-    const achPct   = parseFloat((cols[3]||'').toString().replace('%',''))||0;
+    const name     = (cols[nameIdx]||'').toString().trim();
+    const rawCat   = (cols[catIdx]||'').toString().trim();
+    const achPct   = parseFloat((cols[achIdx]||'').toString().replace('%',''))||0;
 
     // Fuzzy match category
     const category = CAT_VALID.find(c => c.toLowerCase() === rawCat.toLowerCase())
