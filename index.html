@@ -692,7 +692,8 @@ const RANK_COLORS = {
   3:{ gem:'gem-purple.png',glow:'rgba(168,85,247,0.55)', cls:'rank-3', badge:'TOP 3', valColor:'#d8b4fe' },
 };
 
-const pct = (a,t) => t===0 ? 0 : Math.round((a/t)*100);
+const pct = (a,t) => t===0 ? 0 : Math.round(((a/t)*100)*100)/100;
+const fmtPct = p => Number(p).toFixed(2);
 const pctCls = p => p>=100?'pct-green':p>=75?'pct-amber':p>0?'pct-red':'pct-dim';
 const barCls = p => p>=100?'green':p>=75?'amber':p>0?'red':'orange';
 const fmt = n => n===0 ? '—' : Number(n).toLocaleString();
@@ -905,7 +906,7 @@ function buildTeamAdmin(){
           <div class="admin-card-title">${CAT_EMOJI[d.name]||'📊'} ${d.name}</div>
           <div class="admin-card-sub">Category team achievement</div>
         </div>
-        <div class="live-pct" style="color:${p>=100?'#4ade80':p>=75?'#fbbf24':p>0?'#f87171':'rgba(255,255,255,0.3)'}" id="team-livepct-${i}">${p}%</div>
+        <div class="live-pct" style="color:${p>=100?'#4ade80':p>=75?'#fbbf24':p>0?'#f87171':'rgba(255,255,255,0.3)'}" id="team-livepct-${i}">${fmtPct(p)}%</div>
       </div>
       <div class="field-row">
         <div class="field-group">
@@ -921,7 +922,7 @@ function buildTeamAdmin(){
       </div>
       <div class="progress-preview">
         <div class="progress-track"><div class="progress-fill ${bc}" id="team-bar-${i}" style="width:${barW}%"></div></div>
-        <span style="font-size:12px;font-weight:700;color:${p>=100?'#4ade80':p>=75?'#fbbf24':p>0?'#f87171':'rgba(255,255,255,0.3)'};min-width:40px;text-align:right" id="team-pct-${i}">${p}%</span>
+        <span style="font-size:12px;font-weight:700;color:${p>=100?'#4ade80':p>=75?'#fbbf24':p>0?'#f87171':'rgba(255,255,255,0.3)'};min-width:40px;text-align:right" id="team-pct-${i}">${fmtPct(p)}%</span>
       </div>
     </div>`;
   });
@@ -1000,8 +1001,8 @@ function updateLivePct(section, i, input){
   const liveEl = document.getElementById(section+'-livepct-'+i);
   const col = p>=100?'#4ade80':p>=75?'#fbbf24':p>0?'#f87171':'rgba(255,255,255,0.3)';
   if(bar){ bar.style.width=Math.min(p,100)+'%'; bar.className='progress-fill '+barCls(p); }
-  if(pctEl){ pctEl.textContent=p+'%'; pctEl.style.color=col; }
-  if(liveEl){ liveEl.textContent=p+'%'; liveEl.style.color=col; }
+  if(pctEl){ pctEl.textContent=fmtPct(p)+'%'; pctEl.style.color=col; }
+  if(liveEl){ liveEl.textContent=fmtPct(p)+'%'; liveEl.style.color=col; }
 }
 
 function updateLcmPct(i){
@@ -1145,7 +1146,7 @@ function renderKAMDetail(country){
     const achWeight = i < 3 ? '800' : '600';
     const achDisplay = isEmpty || k.target === 0
       ? '<span style="opacity:0.15">—</span>'
-      : `<span style="font-weight:${achWeight};color:${achColor};font-size:14px">${achPct}%</span>`;
+      : `<span style="font-weight:${achWeight};color:${achColor};font-size:14px">${fmtPct(achPct)}%</span>`;
     return `
     <tr>
       <td>${rank}</td>
@@ -1183,14 +1184,14 @@ function renderTeam(){
     return makeCard(rank,
       emoji+' '+entry.name, '', '',
       'Actual Achievement', fmt(entry.actual),
-      'Target Achievement', p+'%', p
+      'Target Achievement', fmtPct(p)+'%', p
     );
   }).join('');
 
   // Show all 4 in bottom
   const allStats = data.team.map(t=>{
     const p = pct(t.actual, t.target);
-    return `<div class="bottom-stat">${CAT_EMOJI[t.name]||''} <strong>${t.name}:</strong> ${fmt(t.actual)} / ${fmt(t.target)} <span style="color:${p>=100?'#4ade80':p>=75?'#fbbf24':p>0?'#f87171':'rgba(255,255,255,0.4)'};font-weight:700">(${p}%)</span></div>`;
+    return `<div class="bottom-stat">${CAT_EMOJI[t.name]||''} <strong>${t.name}:</strong> ${fmt(t.actual)} / ${fmt(t.target)} <span style="color:${p>=100?'#4ade80':p>=75?'#fbbf24':p>0?'#f87171':'rgba(255,255,255,0.4)'};font-weight:700">(${fmtPct(p)}%)</span></div>`;
   }).join('');
   bottom.innerHTML = allStats + `<div class="bottom-stat">🎁 Reward: <strong>$100 USD team budget</strong></div>`;
 }
@@ -1211,7 +1212,7 @@ function renderLCM(){
       entry.name || '—',
       entry.venture, '',
       'Composite Score', comp > 0 ? comp+'pts' : '—',
-      'Target Achievement', achPct+'%', achPct
+      'Target Achievement', fmtPct(achPct)+'%', achPct
     );
   }).join('');
 
