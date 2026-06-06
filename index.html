@@ -95,13 +95,14 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Inter',sans-serif;
 }
 .btn-clear:hover{background:rgba(239,68,68,0.25);color:#fff}
 .admin-datetime-row{
-  display:flex;align-items:center;gap:10px;margin-bottom:1rem;
+  display:flex;align-items:center;gap:8px;margin-bottom:1rem;
   padding:10px 14px;border-radius:10px;
   background:rgba(249,115,22,0.06);border:1px solid rgba(249,115,22,0.15);
+  flex-wrap:wrap;
 }
 .admin-datetime-row label{font-size:11px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:0.08em;white-space:nowrap}
 .admin-datetime-row input[type="datetime-local"]{
-  flex:1;padding:7px 12px;border-radius:8px;font-size:13px;font-weight:600;
+  flex:1;min-width:160px;padding:7px 12px;border-radius:8px;font-size:13px;font-weight:600;
   font-family:'Inter',sans-serif;
   background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.1);
   color:#fff;outline:none;transition:border-color 0.15s,box-shadow 0.15s;
@@ -708,7 +709,7 @@ function makeKAMList() {
 }
 
 function makeKAMDays() {
-  return { 1: { list: makeKAMList(), datetime: '' }, 2: { list: makeKAMList(), datetime: '' } };
+  return { 1: { list: makeKAMList(), datetimeStart: '', datetimeEnd: '' }, 2: { list: makeKAMList(), datetimeStart: '', datetimeEnd: '' } };
 }
 
 const data = {
@@ -818,7 +819,8 @@ function buildKAMAdmin(){
 
     // Rows for active day
     const list = allDays[adminKAMDay].list;
-    const datetime = allDays[adminKAMDay].datetime;
+    const datetimeStart = allDays[adminKAMDay].datetimeStart;
+    const datetimeEnd = allDays[adminKAMDay].datetimeEnd;
     const rows = list.map((k, i) => {
       const opts = CAT_OPTIONS.map(cat =>
         `<option value="${cat}" ${k.category===cat?'selected':''}>${cat}</option>`
@@ -850,9 +852,13 @@ function buildKAMAdmin(){
       </div>
       <div class="kam-day-tabs" style="margin-bottom:1rem">${dayTabs}</div>
       <div class="admin-datetime-row">
-        <label>📅 Date & Time</label>
-        <input type="datetime-local" value="${datetime||''}"
-          onchange="data.kam['${country}'][${adminKAMDay}].datetime=this.value;if(kamActiveCountry==='${country}'&&kamActiveDay===${adminKAMDay})renderKAMDetail('${country}')" />
+        <label>📅 Start</label>
+        <input type="datetime-local" value="${datetimeStart||''}"
+          onchange="data.kam['${country}'][${adminKAMDay}].datetimeStart=this.value;if(kamActiveCountry==='${country}'&&kamActiveDay===${adminKAMDay})renderKAMDetail('${country}')" />
+        <span style="color:var(--text-dim);font-weight:700;font-size:14px">→</span>
+        <label>End</label>
+        <input type="datetime-local" value="${datetimeEnd||''}"
+          onchange="data.kam['${country}'][${adminKAMDay}].datetimeEnd=this.value;if(kamActiveCountry==='${country}'&&kamActiveDay===${adminKAMDay})renderKAMDetail('${country}')" />
       </div>
       <table class="admin-kam-table">
         <thead>
@@ -878,7 +884,7 @@ function switchAdminKAMDay(day, country){
 
 function clearKAMDay(country, day){
   if(!confirm(`Clear all entries for ${country} – Day ${day}?`)) return;
-  data.kam[country][day] = { list: makeKAMList(), datetime: '' };
+  data.kam[country][day] = { list: makeKAMList(), datetimeStart: '', datetimeEnd: '' };
   if(kamActiveCountry === country) renderKAMDetail(country);
   renderKAMCountryGrid();
   buildKAMAdmin();
@@ -1109,16 +1115,22 @@ function renderKAMDetail(country){
   const tbody = document.getElementById('kam-detail-table');
 
   const list = data.kam[country][kamActiveDay].list;
-  const datetime = data.kam[country][kamActiveDay].datetime;
+  const datetimeStart = data.kam[country][kamActiveDay].datetimeStart;
+  const datetimeEnd = data.kam[country][kamActiveDay].datetimeEnd;
   const MEDALS = ['🥇', '🥈', '🥉'];
 
   // Update datetime display
   const dtDisplay = document.getElementById('kam-datetime-display');
   if(dtDisplay){
-    if(datetime){
-      const dt = new Date(datetime);
-      const options = { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:true };
-      dtDisplay.innerHTML = `<span class="dt-icon">📅</span> ${dt.toLocaleString('en-US', options)}`;
+    const dateOpts = { day:'numeric', month:'short', year:'numeric' };
+    const timeOpts = { hour:'2-digit', minute:'2-digit', hour12:true };
+    if(datetimeStart && datetimeEnd){
+      const s = new Date(datetimeStart);
+      const e = new Date(datetimeEnd);
+      dtDisplay.innerHTML = `<span class="dt-icon">📅</span> ${s.toLocaleDateString('en-US',dateOpts)}, ${s.toLocaleTimeString('en-US',timeOpts)} — ${e.toLocaleDateString('en-US',dateOpts)}, ${e.toLocaleTimeString('en-US',timeOpts)}`;
+    } else if(datetimeStart){
+      const s = new Date(datetimeStart);
+      dtDisplay.innerHTML = `<span class="dt-icon">📅</span> ${s.toLocaleDateString('en-US',dateOpts)}, ${s.toLocaleTimeString('en-US',timeOpts)}`;
     } else {
       dtDisplay.innerHTML = '<span style="opacity:0.3">No date set</span>';
     }
